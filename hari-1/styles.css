@@ -62,6 +62,36 @@ h1 {
 }
 .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
 
+/* ---------- Navigasi tab ---------- */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab {
+  flex: 1; padding: 9px 0; border: 2px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--muted); cursor: pointer;
+  font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  transition: all .15s ease;
+}
+.tab:hover { border-color: #cdd5e3; }
+.tab.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 3px 0 var(--red-dark); }
+.tab-panel[hidden] { display: none; }
+
+/* ---------- Koleksi (Pokédex) ---------- */
+.collection-empty { color: var(--muted); font-size: 13px; padding: 30px 10px; }
+.collection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.dex-cell {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+  padding: 8px 6px 10px; position: relative; text-align: center;
+}
+.dex-cell img { width: 68px; height: 68px; object-fit: contain; }
+.dex-cell .dex-no { font-size: 10px; color: var(--muted); font-family: "Courier New", monospace; font-weight: 700; }
+.dex-cell .dex-name { font-size: 11px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dex-cell .dex-count {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 10px; font-weight: 800; color: #fff; background: var(--red);
+  border-radius: 10px; padding: 1px 7px; min-width: 20px;
+}
+.dex-cell.shiny { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255,203,5,.55); }
+.dex-cell .shiny-star { position: absolute; top: 5px; left: 6px; font-size: 12px; }
+
 /* ---------- Kartu statistik ---------- */
 .stats { display: flex; gap: 10px; margin-bottom: 12px; }
 .stat {

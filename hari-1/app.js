@@ -192,6 +192,10 @@ const el = {
   err: document.getElementById("err"),
   tarik1: document.getElementById("tarik1"),
   tarik10: document.getElementById("tarik10"),
+  uniqueCount: document.getElementById("uniqueCount"),
+  shinyCount: document.getElementById("shinyCount"),
+  collectionGrid: document.getElementById("collectionGrid"),
+  collectionEmpty: document.getElementById("collectionEmpty"),
 };
 
 // ---------- Mesin rarity ----------
@@ -346,6 +350,56 @@ el.tarik10.addEventListener("click", async () => {
     await pull(); // berurutan biar sopan ke API & animasi enak dilihat
   }
   setLoading(false);
+});
+
+// ---------- Render koleksi (Pokédex) ----------
+function renderCollection() {
+  // Urutkan berdasarkan nomor Pokédex biar rapi seperti Pokédex asli.
+  const daftar = Object.values(collection).sort((a, b) => a.id - b.id);
+  const shinyTotal = daftar.filter(m => m.shiny).length;
+
+  el.uniqueCount.textContent = daftar.length;
+  el.shinyCount.textContent = shinyTotal;
+  el.collectionEmpty.hidden = daftar.length > 0;
+
+  el.collectionGrid.innerHTML = "";
+  daftar.forEach(m => {
+    const cell = document.createElement("div");
+    cell.className = "dex-cell" + (m.shiny ? " shiny" : "");
+
+    const src = m.shiny && m.shinyArtwork ? m.shinyArtwork : m.artwork;
+    const img = document.createElement("img");
+    img.onerror = () => { img.onerror = null; if (m.fallbackArt) img.src = m.fallbackArt; };
+    img.src = src;
+    img.alt = m.name;
+
+    cell.innerHTML =
+      (m.shiny ? '<span class="shiny-star">✨</span>' : "") +
+      (m.count > 1 ? '<span class="dex-count">×' + m.count + "</span>" : "") +
+      '<div class="dex-no">#' + String(m.id).padStart(3, "0") + "</div>";
+    cell.insertBefore(img, cell.firstChild);
+    const name = document.createElement("div");
+    name.className = "dex-name";
+    name.textContent = m.name;
+    cell.appendChild(name);
+
+    el.collectionGrid.appendChild(cell);
+  });
+}
+
+// ---------- Navigasi tab ----------
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === name);
+  });
+  document.querySelectorAll(".tab-panel").forEach(p => {
+    p.hidden = p.id !== "panel-" + name;
+  });
+  if (name === "koleksi") renderCollection(); // selalu tampilkan data terbaru
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => switchTab(t.dataset.tab));
 });
 
 // ---------- Mulai: pulihkan progres yang tersimpan ----------
