@@ -19,12 +19,12 @@ export const CONFIG = {
   WALLETCONNECT_PROJECT_ID: "GANTI_DENGAN_PROJECT_ID_KAMU",
 
   // Alamat pool AMM kamu (hasil deploy SimpleAMM di Remix).
-  AMM_ADDRESS: "0x60a19Da3F8CFA6F64a35a374CE0e5a7bC2d695c3",
+  AMM_ADDRESS: "0xBF213C8dD19F5415Ee360DBb8ba88A6Dc915D9f5",
 
   // TOKEN A = KOIN KAMU (harus SAMA dengan tokenA di SimpleAMM).
   TOKEN_A: {
-    address: "0x8cfd81e42052a502da01a0884F4De804d0C1Eb4B",
-    logo: "/zexoverz.webp", // ganti dengan logo koinmu (file di public/)
+    address: "0x938b70f60AEda1525dcd00A5E3d8f2668EF986Cf",
+    logo: "/GeToken.jpg", // ganti dengan logo koinmu (file di public/)
   },
 
   // TOKEN B = ETHJKT (token bersama dari pengajar).

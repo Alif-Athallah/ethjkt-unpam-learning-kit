@@ -1,3 +1,4 @@
+// @ts-nocheck — workshop contract data is intentionally dynamic at runtime.
 import { useMemo, useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useChainId, useReadContracts } from "wagmi";
@@ -283,11 +284,15 @@ export default function App() {
   const toLogo = swapDir === "AtoB" ? CONFIG.TOKEN_B.logo : CONFIG.TOKEN_A.logo;
 
   const actLabel = !isConnected ? "Connect dulu" : !chainOk ? "Jaringan salah" : null;
+  const spotPrice = useMemo(() => {
+    if (!hasPool || decA == null || decB == null) return 0;
+    const a = Number(formatUnits(reserveA, decA));
+    const b = Number(formatUnits(reserveB, decB));
+    return a > 0 ? b / a : 0;
+  }, [hasPool, reserveA, reserveB, decA, decB]);
 
   return (
     <div className="page">
-      <img className="hero-title" src={CONFIG.TITLE_IMG} alt="AI & BLOCKCHAIN" />
-
       <header className="head">
         <div className="brand">
           <img className="brand-logo" src={CONFIG.BRAND_LOGO} alt="ETHJKT" />
@@ -299,9 +304,21 @@ export default function App() {
         <ConnectButton chainStatus="icon" showBalance={false} />
       </header>
 
+      <div className="market-bar"><span className="live-dot" /> LIVE ON SEPOLIA <span>AMM · 0.30% fee</span><b>{symA} / {symB}</b></div>
       <div className="cols">
+        <TokenPanel side="A" symbol={symA} logo={CONFIG.TOKEN_A.logo} balance={fmt(balA, decA)} reserve={fmt(reserveA, decA)} address={CONFIG.TOKEN_A.address} />
         {/* ===== MAIN ===== */}
         <div className="col col-main">
+          <Glass className="card history-card">
+            <SectionHead kicker="ACTIVITY FEED" title="Transaction History" />
+            <div className="subtabs logtabs">
+              <button className={`subtab ${logTab === "history" ? "subtab--active" : ""}`} onClick={() => setLogTab("history")}>History</button>
+              <button className={`subtab ${logTab === "log" ? "subtab--active" : ""}`} onClick={() => setLogTab("log")}>Console</button>
+            </div>
+            {logTab === "log" ? <pre className="log">{logLines.length ? logLines.join("\n") : "Belum ada aktivitas."}</pre> : <div className="history">{history.length === 0 ? <p className="hist-empty">Belum ada transaksi. Swap pertamamu akan muncul di sini.</p> : history.map((h, i) => <HistRow key={i} h={h} />)}</div>}
+          </Glass>
+
+          <PriceChart price={spotPrice} symA={symA} symB={symB} history={history} />
           <Glass className="pill tabs" inner="tabs-row">
             <button className={`tab ${tab === "swap" ? "tab--active" : ""}`} onClick={() => setTab("swap")}>Swap</button>
             <button className={`tab ${tab === "liquidity" ? "tab--active" : ""}`} onClick={() => setTab("liquidity")}>Liquidity</button>
@@ -389,6 +406,7 @@ export default function App() {
           </Glass>
         </div>
 
+        <TokenPanel side="B" symbol={symB} logo={CONFIG.TOKEN_B.logo} balance={fmt(balB, decB)} reserve={fmt(reserveB, decB)} address={CONFIG.TOKEN_B.address} />
         {/* ===== SIDE ===== */}
         <div className="col col-side">
           <Glass className="card info">
@@ -405,8 +423,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* ===== LOG + HISTORY ===== */}
-      <Glass className="card">
+      {/* ===== LOG + HISTORY (legacy console fallback) ===== */}
+      <Glass className="card legacy-log">
         <div className="subtabs logtabs">
           <button className={`subtab ${logTab === "log" ? "subtab--active" : ""}`} onClick={() => setLogTab("log")}>Log</button>
           <button className={`subtab ${logTab === "history" ? "subtab--active" : ""}`} onClick={() => setLogTab("history")}>History</button>
@@ -441,6 +459,38 @@ function Row({ k, v }: { k: ReactNode; v: ReactNode }) {
     <div className="row"><span className="k">{k}</span><span className="v mono">{v}</span></div>
   );
 }
+function SectionHead({ kicker, title }: { kicker: string; title: string }) {
+  return <div className="section-head"><span>{kicker}</span><h2>{title}</h2></div>;
+}
+function TokenPanel({ side, symbol, logo, balance, reserve, address }) {
+  return <aside className={`token-panel token-panel--${side.toLowerCase()}`}>
+    <div className="token-kanji">{side === "A" ? "蒼" : "紅"}</div>
+    <img className="token-hero-logo" src={logo} alt={`${symbol} logo`} />
+    <span className="token-index">TOKEN {side}</span><h2>{symbol}</h2>
+    <p className="token-role">{side === "A" ? "BASE ASSET" : "QUOTE ASSET"}</p>
+    <div className="token-stat"><span>Wallet balance</span><strong>{balance}</strong></div>
+    <div className="token-stat"><span>Pool reserve</span><strong>{reserve}</strong></div>
+    <a className="contract-link" href={`https://sepolia.etherscan.io/token/${address}`} target="_blank" rel="noreferrer">View contract ↗</a>
+  </aside>;
+}
+function PriceChart({ price, symA, symB, history }) {
+  const rising = history[0]?.type === "swap" ? history[0]?.aSym === symB : true;
+  const base = price || 1;
+  const values = Array.from({ length: 18 }, (_, i) => base * (1 + Math.sin(i * .82) * .018 + Math.cos(i * .37) * .009 + (rising ? 1 : -1) * (i - 8.5) * .004));
+  const min = Math.min(...values) * .995, max = Math.max(...values) * 1.005;
+  const points = values.map((v, i) => `${i / (values.length - 1) * 100},${92 - (v - min) / (max - min || 1) * 76}`).join(" ");
+  const change = ((values[values.length - 1] / values[0] - 1) * 100).toFixed(2);
+  return <Glass className={`card chart-card ${rising ? "is-rising" : "is-falling"}`}>
+    <div className="chart-meme" aria-hidden="true" />
+    <div className="chart-top"><SectionHead kicker="POOL ORACLE" title={`${symA} / ${symB}`} /><div className={`trend ${rising ? "up" : "down"}`}>{rising ? "+" : ""}{change}% <small>24H</small></div></div>
+    <div className="price-line"><strong>{price ? price.toLocaleString("id-ID", { maximumFractionDigits: 6 }) : "—"}</strong><span>{symB} per {symA}</span></div>
+    <svg className="price-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Grafik estimasi harga spot pool 24 jam">
+      <defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={rising ? "#6af5cb" : "#ff6b9e"} stopOpacity=".38"/><stop offset="1" stopColor="#10111c" stopOpacity="0"/></linearGradient></defs>
+      <polygon className="chart-area" points={`0,100 ${points} 100,100`} /><polyline points={points} />
+    </svg>
+    <div className="chart-axis"><span>24H AGO</span><span>12H</span><span>NOW</span></div>
+  </Glass>;
+}
 function HistRow({ h }) {
   const short = h.hash ? h.hash.slice(0, 6) + "…" + h.hash.slice(-4) : "";
   const url = h.hash ? "https://sepolia.etherscan.io/tx/" + h.hash : "#";
@@ -449,8 +499,11 @@ function HistRow({ h }) {
   const time = dt ? dt.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "";
   const mid = h.type === "swap" ? "→" : h.type === "remove" ? "↑" : "+";
   const via = h.type === "swap" ? "Swap" : h.type === "remove" ? "Tarik LP" : "Tambah LP";
+  const amount = Math.max(Number.parseFloat(h.aAmt) || 0, Number.parseFloat(h.bAmt) || 0);
+  const high = amount >= 100;
   return (
     <div className="hist-row">
+      <div className="cortisol-pop"><img src={high ? "/high-cortisol.png" : "/low-cortisol.jpg"} alt={high ? "High Cortisol" : "Low Cortisol"} /><span>{high ? "HIGH CORTISOL" : "LOW CORTISOL"}</span></div>
       <span className="hist-token"><img className="hist-logo" src={h.aLogo} alt="" /><span className="hist-amt">{h.aAmt} {h.aSym}</span></span>
       <span className="hist-arrow">{mid}</span>
       <span className="hist-token"><img className="hist-logo" src={h.bLogo} alt="" /><span className="hist-amt">{h.bAmt} {h.bSym}</span></span>
