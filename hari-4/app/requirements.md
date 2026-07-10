@@ -13,19 +13,6 @@ Ronin   < -- > EthjktToken AMM                  : 0x08C496613E6fc4A66587bB050FE4
 Router      : 0x417bf7FB8224fA42230cCA7e3Fa04F81f7d9Fd43
 
 
-
-
-Success Swap A for B Tx Details: 
-https://sepolia.etherscan.io/tx/0xd6d58a3eead709664c2b041c957a4809b14e754a2f3a19337935f221638bc60a
-
-
-
-## CHECKPOINT 6 — Jelasin Contract-mu Sendiri (bahasa manusia)
-[ ] Transfer    -> Berfungsi untuk mentransfer koin ke wallet
-Approve         -> Berfungsi untuk menyetujui bahwa script (AMM) bisa menarik saldo dari e-wallet kita.
-
-
-[ ] Pool        -> "Pasar" untuk bertukar token
-addLiquidity    -> "Menyetok" pasar/pool dengan kedua token yang akan kita gunakan
-swap            -> Melakukan pertukaran kedua token di pasar
-
+1. Tolong tambahkan fitur untuk melihat daftar token, aku kurang tau sih posisi idealnya dimana
+2. Kemudian grafiknya kalo bisa dibagi 2 chat. Yang satu grafik kita saat ini, kemudian di bawahnya ada grafik terkait token mana yang banyak transaksinya dengan menggunakan bar chart.
+3. Untuk foto token sudah aku sediakan di public folder
